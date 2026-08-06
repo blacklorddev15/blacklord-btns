@@ -28,7 +28,7 @@ await sendButtons(sock, jid, {
   footer: 'WOLF TECH',
   title: 'Menu',
   buttons: [
-    btn.url('Open GitHub', 'https://github.com/WOLFTECH-254'),
+    btn.url('Open GitHub', 'https://github.com/WOLVAREX'),
     btn.reply('Say hi', 'hi_id'),
     btn.copy('Copy invite code', 'WOLF2026'),
     btn.call('Call support', '+254700000000'),
