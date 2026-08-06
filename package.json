@@ -1,0 +1,31 @@
+{
+  "name": "wolfbtns",
+  "version": "1.0.0",
+  "description": "Transparent, unobfuscated interactive-buttons helper for wolfsocket / Baileys. No eval, no string-table obfuscation.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "wolfsocket",
+    "buttons",
+    "interactive-message",
+    "wolf-tech"
+  ],
+  "author": "Briton Kiplangat (Silent Wolf) <WOLF TECH>",
+  "license": "MIT",
+  "homepage": "https://github.com/WOLVAREX/wolfbtns",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WOLVAREX/wolfbtns.git"
+  },
+  "peerDependencies": {
+    "wolfsocket": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
