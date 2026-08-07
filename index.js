@@ -38,7 +38,6 @@ export const btn = {
 			name: 'cta_copy',
 			buttonParamsJson: JSON.stringify({
 				display_text,
-				id: `copy_${Date.now()}`,
 				copy_code
 			})
 		}
