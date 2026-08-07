@@ -7,7 +7,7 @@
 //       text: 'Choose an option',
 //       footer: 'WOLF TECH',
 //       buttons: [
-//           btn.url('Open GitHub', 'https://github.com/WOLFTECH-254'),
+//           btn.url('Open GitHub', 'https://github.com/WOLVAREX'),
 //           btn.reply('Say hi', 'hi_id'),
 //           btn.copy('Copy code', 'WOLF2026')
 //       ]
@@ -82,7 +82,13 @@ export const btn = {
  * @param {string} [options.footer] footer text
  * @param {string} [options.title] header title
  * @param {string} [options.subtitle] header subtitle
- * @param {Array} options.buttons array of button objects (use `btn.*` builders)
+ * @param {Array} [options.buttons] array of button objects (use `btn.*` builders)
+ * @param {Array} [options.interactiveButtons] alias for `buttons` (kept
+ *   for compatibility with libraries that use this call shape -- lets you
+ *   swap `otherLib.sendInteractiveMessage(...)` for `sendButtons(...)`
+ *   without touching the call site's payload shape)
+ * @param {object} [options.contextInfo] raw contextInfo to merge in (e.g. for
+ *   `{ mentionedJid: [...] }`)
  * @param {import('wolfsocket').WAMessage} [options.quoted] message to quote/reply to
  * @param {boolean} [options.viewOnce=true] wrap in viewOnceMessage (required by
  *   current WhatsApp clients to render native-flow buttons correctly)
@@ -93,29 +99,41 @@ export async function sendButtons(sock, jid, options = {}) {
 		footer = '',
 		title,
 		subtitle,
-		buttons = [],
+		buttons,
+		interactiveButtons, // compatibility alias for `buttons`
+		contextInfo,
 		quoted,
 		viewOnce = true
 	} = options
 
-	if (!Array.isArray(buttons) || buttons.length === 0) {
-		throw new Error('wolfbtns: sendButtons requires at least one button')
+	const resolvedButtons = buttons || interactiveButtons || []
+
+	if (!Array.isArray(resolvedButtons) || resolvedButtons.length === 0) {
+		throw new Error('wolfbtns: sendButtons requires at least one button (pass `buttons` or `interactiveButtons`)')
 	}
 
-	for (const b of buttons) {
+	for (const b of resolvedButtons) {
 		if (!b || typeof b.name !== 'string' || typeof b.buttonParamsJson !== 'string') {
 			throw new Error('wolfbtns: each button needs { name, buttonParamsJson } -- use the btn.* builders')
 		}
 	}
 
-	const interactiveMessage = {
+	const bodyAndHeader = {
 		...(text ? { body: { text } } : {}),
 		...(footer ? { footer: { text: footer } } : {}),
 		...(title || subtitle
 			? { header: { title, subtitle, hasMediaAttachment: false } }
-			: {}),
+			: {})
+	}
+
+	if (contextInfo && typeof contextInfo === 'object') {
+		bodyAndHeader.contextInfo = contextInfo
+	}
+
+	const interactiveMessage = {
+		...bodyAndHeader,
 		nativeFlowMessage: {
-			buttons,
+			buttons: resolvedButtons,
 			messageParamsJson: ''
 		}
 	}
@@ -134,4 +152,13 @@ export async function sendButtons(sock, jid, options = {}) {
 	return fullMessage
 }
 
-export default { sendButtons, btn }
+/**
+ * Alias for `sendButtons`, matching the method name used by some other
+ * interactive-buttons libraries -- use this if you want a true drop-in
+ * replacement without renaming the call site
+ * (`otherLib.sendInteractiveMessage(sock, jid, {...})` becomes
+ * `wolfbtns.sendInteractiveMessage(sock, jid, {...})`).
+ */
+export const sendInteractiveMessage = sendButtons
+
+export default { sendButtons, sendInteractiveMessage, btn }
