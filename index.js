@@ -90,8 +90,6 @@ export const btn = {
  * @param {object} [options.contextInfo] raw contextInfo to merge in (e.g. for
  *   `{ mentionedJid: [...] }`)
  * @param {import('wolfsocket').WAMessage} [options.quoted] message to quote/reply to
- * @param {boolean} [options.viewOnce=true] wrap in viewOnceMessage (required by
- *   current WhatsApp clients to render native-flow buttons correctly)
  */
 export async function sendButtons(sock, jid, options = {}) {
 	const {
@@ -102,8 +100,7 @@ export async function sendButtons(sock, jid, options = {}) {
 		buttons,
 		interactiveButtons, // compatibility alias for `buttons`
 		contextInfo,
-		quoted,
-		viewOnce = true
+		quoted
 	} = options
 
 	const resolvedButtons = buttons || interactiveButtons || []
@@ -119,11 +116,9 @@ export async function sendButtons(sock, jid, options = {}) {
 	}
 
 	const bodyAndHeader = {
+		header: { title: title || '', subtitle: subtitle || '', hasMediaAttachment: false },
 		...(text ? { body: { text } } : {}),
-		...(footer ? { footer: { text: footer } } : {}),
-		...(title || subtitle
-			? { header: { title, subtitle, hasMediaAttachment: false } }
-			: {})
+		...(footer ? { footer: { text: footer } } : {})
 	}
 
 	if (contextInfo && typeof contextInfo === 'object') {
@@ -138,16 +133,38 @@ export async function sendButtons(sock, jid, options = {}) {
 		}
 	}
 
-	const messageContent = viewOnce
-		? { viewOnceMessage: { message: { interactiveMessage } } }
-		: { interactiveMessage }
+	// No viewOnceMessage wrapper -- interactiveMessage goes at the top level.
+	const messageContent = { interactiveMessage }
+
+	// WhatsApp requires this additionalNodes stanza for the client to
+	// recognize and render the message as interactive (native-flow) buttons.
+	// Without it, the message relays successfully with no error, but the
+	// recipient's client silently ignores the interactive content.
+	const interactiveStanzaNodes = [
+		{
+			tag: 'biz',
+			attrs: {},
+			content: [
+				{
+					tag: 'interactive',
+					attrs: { type: 'native_flow', v: '1' },
+					content: [
+						{ tag: 'native_flow', attrs: { v: '9', name: 'mixed' } }
+					]
+				}
+			]
+		}
+	]
 
 	const fullMessage = generateWAMessageFromContent(jid, messageContent, {
 		quoted,
 		userJid: sock.user?.id
 	})
 
-	await sock.relayMessage(jid, fullMessage.message, { messageId: fullMessage.key.id })
+	await sock.relayMessage(jid, fullMessage.message, {
+		messageId: fullMessage.key.id,
+		additionalNodes: interactiveStanzaNodes
+	})
 
 	return fullMessage
 }
