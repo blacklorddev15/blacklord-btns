@@ -1,6 +1,6 @@
 {
   "name": "wolfbtns",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Transparent, unobfuscated interactive-buttons helper for wolfsocket / Baileys. No eval, no string-table obfuscation.",
   "type": "module",
   "main": "index.js",
