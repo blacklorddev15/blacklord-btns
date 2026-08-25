@@ -1,19 +1,19 @@
-// wolfbtns -- transparent, unobfuscated interactive-buttons helper for wolfsocket
-// (WOLF TECH). No eval, no string-table obfuscation -- read it, audit it, fork it.
+// blacklord-btns -- transparent, unobfuscated interactive-buttons helper for blacklord-socket
+// No eval, no string-table obfuscation -- read it, audit it, fork it.
 //
 // Usage:
-//   import { sendButtons, btn } from 'wolfbtns'
+//   import { sendButtons, btn } from 'blacklord-btns'
 //   await sendButtons(sock, jid, {
 //       text: 'Choose an option',
-//       footer: 'WOLF TECH',
+//       footer: 'BLACKLORD',
 //       buttons: [
-//           btn.url('Open GitHub', 'https://github.com/WOLVAREX'),
+//           btn.url('Open GitHub', 'https://github.com/blacklorddev15/blacklord-socket'),
 //           btn.reply('Say hi', 'hi_id'),
-//           btn.copy('Copy code', 'WOLF2026')
+//           btn.copy('Copy code', 'BLACKLORD2026')
 //       ]
 //   })
 
-import { generateWAMessageFromContent } from 'wolfsocket'
+import { generateWAMessageFromContent } from 'blacklord-socket'
 
 /**
  * Button builders for WhatsApp's native-flow interactive buttons.
@@ -74,7 +74,7 @@ export const btn = {
 /**
  * Send an interactive-buttons message.
  *
- * @param {import('wolfsocket').WASocket} sock
+ * @param {import('blacklord-socket').WASocket} sock
  * @param {string} jid
  * @param {object} options
  * @param {string} [options.text] body text
@@ -88,7 +88,7 @@ export const btn = {
  *   without touching the call site's payload shape)
  * @param {object} [options.contextInfo] raw contextInfo to merge in (e.g. for
  *   `{ mentionedJid: [...] }`)
- * @param {import('wolfsocket').WAMessage} [options.quoted] message to quote/reply to
+ * @param {import('blacklord-socket').WAMessage} [options.quoted] message to quote/reply to
  */
 export async function sendButtons(sock, jid, options = {}) {
 	const {
@@ -105,12 +105,12 @@ export async function sendButtons(sock, jid, options = {}) {
 	const resolvedButtons = buttons || interactiveButtons || []
 
 	if (!Array.isArray(resolvedButtons) || resolvedButtons.length === 0) {
-		throw new Error('wolfbtns: sendButtons requires at least one button (pass `buttons` or `interactiveButtons`)')
+		throw new Error('blacklord-btns: sendButtons requires at least one button (pass `buttons` or `interactiveButtons`)')
 	}
 
 	for (const b of resolvedButtons) {
 		if (!b || typeof b.name !== 'string' || typeof b.buttonParamsJson !== 'string') {
-			throw new Error('wolfbtns: each button needs { name, buttonParamsJson } -- use the btn.* builders')
+			throw new Error('blacklord-btns: each button needs { name, buttonParamsJson } -- use the btn.* builders')
 		}
 	}
 
@@ -173,7 +173,7 @@ export async function sendButtons(sock, jid, options = {}) {
  * interactive-buttons libraries -- use this if you want a true drop-in
  * replacement without renaming the call site
  * (`otherLib.sendInteractiveMessage(sock, jid, {...})` becomes
- * `wolfbtns.sendInteractiveMessage(sock, jid, {...})`).
+ * `blacklord-btns.sendInteractiveMessage(sock, jid, {...})`).
  */
 export const sendInteractiveMessage = sendButtons
 
