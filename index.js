@@ -128,7 +128,8 @@ export async function sendButtons(sock, jid, options = {}) {
 		...bodyAndHeader,
 		nativeFlowMessage: {
 			buttons: resolvedButtons,
-			messageParamsJson: ''
+			messageParamsJson: '',
+			messageVersion: 1
 		}
 	}
 
@@ -177,4 +178,49 @@ export async function sendButtons(sock, jid, options = {}) {
  */
 export const sendInteractiveMessage = sendButtons
 
-export default { sendButtons, sendInteractiveMessage, btn }
+/**
+ * Send a reliable plain-text or image-caption response when a client does not
+ * support native-flow rendering. This preserves the same call shape as
+ * sendButtons while omitting interactive metadata.
+ */
+export async function sendRaw(sock, jid, options = {}) {
+	const {
+		text = '',
+		image,
+		caption,
+		contextInfo,
+		quoted
+	} = options
+
+	const message = image
+		? { image, caption: caption ?? text, ...(contextInfo ? { contextInfo } : {}) }
+		: { text, ...(contextInfo ? { contextInfo } : {}) }
+
+	return sock.sendMessage(jid, message, { quoted })
+}
+
+/**
+ * Send native-flow buttons or the reliable raw equivalent. Set `format` to
+ * `raw`, `text`, or `plain` for a plain message; native is the default. With
+ * `fallbackRaw` enabled, native-flow errors automatically degrade to raw.
+ */
+export async function sendCompatible(sock, jid, options = {}) {
+	const {
+		format = 'native',
+		fallbackRaw = false,
+		...payload
+	} = options
+
+	if (['raw', 'text', 'plain'].includes(String(format).toLowerCase())) {
+		return sendRaw(sock, jid, payload)
+	}
+
+	try {
+		return await sendButtons(sock, jid, payload)
+	} catch (error) {
+		if (!fallbackRaw) throw error
+		return sendRaw(sock, jid, payload)
+	}
+}
+
+export default { sendButtons, sendInteractiveMessage, sendRaw, sendCompatible, btn }
